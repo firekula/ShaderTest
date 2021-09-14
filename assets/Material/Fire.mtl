@@ -1,0 +1,21 @@
+{
+  "__type__": "cc.Material",
+  "_name": "Fire",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "92e2b147-3160-475d-a588-968d15d91667"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {},
+      "defines": {
+        "USE_TEXTURE": true,
+        "INPUT_IS_GAMMA": false,
+        "USE_ALPHA_TEST": false,
+        "USE_FIRETEXTURE": true
+      }
+    }
+  }
+}

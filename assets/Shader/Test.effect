@@ -1,0 +1,146 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.  
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+        outlineSize: { value: [1, 1]}
+        outlineStartColor: { value: [1, 1, 1, 1], editor: { type: color }}
+        outlineEndColor: { value: [1, 1, 1, 1], editor: { type: color }}
+        textureSize: { value: [1, 1]}
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  #endif
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    v_uv0 = a_uv0;
+    #endif
+
+    v_color = a_color;
+
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+  
+  #include <alpha-test>
+  #include <texture>
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  uniform myUniform{
+    vec4 outlineStartColor;
+    vec4 outlineEndColor;
+    vec2 outlineSize;
+    vec2 textureSize;
+  };
+  #endif
+
+  float getIsStrokeWithAngel(float cosangel, float sinangel)
+  {
+    float stroke = 0.0;
+    float a = texture2D(texture, vec2(v_uv0.x + outlineSize.x * cosangel, v_uv0.y + outlineSize.y * sinangel)).a; 
+    // 这句比较难懂，outlineSize * cos(rad)可以理解为在x轴上投影，除以textureSize.x是因为texture2D接收的是一个0~1的纹理坐标，而不是像素坐标
+    float num = 0.01;
+    if (a >= num)
+    {
+        stroke = 1.0;
+    }
+    return stroke;
+  }
+
+  float easeOutQuint(float x) {
+    return 1.0 - pow(1.0 - x, 5.0);
+  }
+
+  vec4 lerp(vec4 color1, vec4 color2, float r){
+    return vec4((color1.rgb * r + color2.rgb * (1.0 - r)),1.0);
+  }
+
+  void main () {   
+    //vec4 o = vec4(1, 1, 1, 1);
+    vec4 myC = texture2D(texture, vec2(v_uv0.x, v_uv0.y));
+
+   // #if USE_TEXTURE
+   //   CCTexture(texture, v_uv0, o);
+   // #endif
+
+    //o *= v_color;
+    
+    //OUTLINE
+    float angle = 0.0;
+    float strokeCount = 0.0;
+    float r1 = 0.0;
+    float r2 = 0.0;
+    if(textureSize.y > textureSize.x){
+      r1 = 1.0;
+      r2 = textureSize.x / textureSize.y;
+    } else {
+      r1 = textureSize.y / textureSize.x;
+      r2 = 1.0;
+    }
+    int rang = 360;
+    for(int i = 0; i < 360; i++ ){
+      angle += 1.0 / (float(rang) / 2.0) * 3.14159;
+      vec2 testPoint = vec2(r1 * cos(angle), r2 * sin(angle));
+      strokeCount += getIsStrokeWithAngel(testPoint.x, testPoint.y);
+    }
+
+    if(strokeCount > 0.0){
+      if(myC.a < 1.0){
+        vec4 outlineColor = lerp(outlineStartColor, outlineEndColor, v_uv0.y);
+        myC.rgb = myC.rgb * myC.a + outlineColor.rgb * (1.0 - myC.a);
+        float r = float(rang);
+        if(strokeCount / r < 0.2){
+          myC.a = easeOutQuint((strokeCount / r) / 0.2 * 3.14159 / 2.0);
+        } else {
+          myC.a = 1.0;
+        }
+      }
+    }
+
+    //ALPHA_TEST(o);
+
+    gl_FragColor = myC;
+  }
+}%

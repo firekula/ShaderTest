@@ -1,0 +1,8 @@
+{
+  "engine": "cocos2d-html5",
+  "packages": "packages",
+  "version": "2.4.5",
+  "name": "ShaderTest",
+  "id": "0ece40d3-c5c7-44c6-a2f1-252a2fd35164",
+  "isNew": false
+}

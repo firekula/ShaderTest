@@ -1,0 +1,37 @@
+{
+  "__type__": "cc.Material",
+  "_name": "Test",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "a4eb9085-a2a4-47e8-ba41-68196b3a3be6"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "props": {
+        "outlineSize": {
+          "__type__": "cc.Vec2",
+          "x": 0.04,
+          "y": 0.04
+        },
+        "textureSize": {
+          "__type__": "cc.Vec2",
+          "x": 220,
+          "y": 305
+        },
+        "outlineEndColor": {
+          "__type__": "cc.Color",
+          "r": 255,
+          "g": 0,
+          "b": 0,
+          "a": 255
+        }
+      },
+      "defines": {
+        "USE_TEXTURE": true,
+        "USE_ALPHA_TEST": true
+      }
+    }
+  }
+}
